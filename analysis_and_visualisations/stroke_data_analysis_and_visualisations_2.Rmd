@@ -1,5 +1,5 @@
 ---
-title: "R Notebook"
+title: "Stroke Data Analysis"
 output: html_notebook
 ---
 
@@ -10,120 +10,23 @@ library(here)
 library(sf)
 ```
 
-
-## Stroke activity by local authority area.
+## Loading in data
 
 ```{r}
-stroke_activitybyca <- read_csv("raw_data/stroke_activitybyca.csv") %>%
-  clean_names()
-
-head(stroke_activitybyca)
+comb_stroke_activityca <- read_csv("C:/Users/mj_20/Documents/final_project_melanie_jayasinghe/clean_data/comb_stroke_activity_ca.csv")
 ```
 
 ```{r}
-stroke_activitybyca %>%
-  distinct(ca)
-
-```
-
-subsetting data
-
-```{r}
-stroke_ca_2 <- stroke_activitybyca %>%
-  select(financial_year, ca, admission_type  ,age_group, sex, diagnosis, number_of_discharges, crude_rate)
-```
-
-
-## Stroke activity by health board region.
-
-```{r}
-stroke_activitybyhbr <- read_csv("raw_data/stroke_activitybyhbr.csv") %>%
-  clean_names()
-
-head(stroke_activitybyhbr)
+comb_stroke_activityhbr <- read_csv("C:/Users/mj_20/Documents/final_project_melanie_jayasinghe/clean_data/comb_stroke_activityhbr.csv")
 ```
 
 ```{r}
-stroke_activitybyhbr %>%
-  distinct(hbr)
-```
-```{r}
-stroke_hbr_2 <- stroke_activitybyhbr %>%
-  select(financial_year, hbr, admission_type, age_group, sex, diagnosis, number_of_discharges, crude_rate)
-```
-
-
-
-Subsetting stroke mortality by local authority area
-```{r}
-stroke_mortalitybyca <- read_csv("raw_data/stroke_mortalitybyca.csv") %>%
-  clean_names()
-
-head(stroke_mortalitybyca)
+comb_stroke_mortalityca <- read_csv("C:/Users/mj_20/Documents/final_project_melanie_jayasinghe/clean_data/comb_stroke_mortalityca.csv")
 ```
 
 ```{r}
-stroke_mortalitybyca_2 <- stroke_mortalitybyca %>%
-  select(year, ca, age_group, sex, diagnosis, number_of_deaths, crude_rate)
+comb_stroke_mortalityhbr <- read_csv("C:/Users/mj_20/Documents/final_project_melanie_jayasinghe/clean_data/comb_stroke_mortalityhbr.csv")
 ```
-
-
-
-Subsetting stroke mortality by health board region.
-```{r}
-stroke_mortalitybyhbr <- read_csv("raw_data/stroke_mortalitybyhbr.csv") %>%
-  clean_names()
-
-head(stroke_mortalitybyhbr)
-```
-
-```{r}
-stroke_mortalitybyhbr_2 <- stroke_mortalitybyhbr %>%
-  select(year, hbr, age_group, sex, diagnosis, number_of_deaths, crude_rate)
-```
-
-
-
-```{r}
-la_data_zones <- read_csv("raw_data/data_zones.csv")
-```
-
-```{r}
-data_zones <- read_csv("~/public_health_dashboard/raw_data/data_zones.csv")
-
-la_zones_clean <- data_zones %>%
-  select(LA_Code, LA_Name) %>%
-  distinct()
-  
-```
-
-```{r}
-hbr_zones_clean <- data_zones %>%
-  select(HB_Code, HB_Name) %>%
-  distinct()
-  
-```
-
-
-
-```{r}
-comb_stroke_activityca <- left_join(stroke_ca_2, la_zones_clean, by = c("ca" ="LA_Code"))
-```
-
-```{r}
-comb_stroke_activityhbr <- left_join(stroke_hbr_2, hbr_zones_clean, by = c("hbr" ="HB_Code"))
-```
-
-```{r}
-comb_stroke_mortalityca <- left_join(stroke_mortalitybyca_2, la_zones_clean, by = c("ca" ="LA_Code"))
-```
-
-```{r}
-comb_stroke_mortalityhbr <- left_join(stroke_mortalitybyhbr_2, hbr_zones_clean, by = c("hbr" ="HB_Code"))
-```
-
-
-
 
 
 ```{r}
@@ -142,6 +45,7 @@ ggplot(common_stroke) +
   aes(x = diagnosis, y = number_of_discharges) +
   geom_col() 
 ```
+
 
 ```{r}
 common_stroke_2 <- common_stroke %>%
@@ -186,9 +90,6 @@ ggplot(common_stroke_dem) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-
-
-
 ```{r}
 common_stroke_year <- comb_stroke_activityca %>%
   filter( ca == "S92000003") %>%
@@ -213,6 +114,7 @@ ggplot(common_stroke_year) +
 ```
 
 
+
 number of cases per year
 ```{r}
 ggplot(common_stroke) +
@@ -221,6 +123,7 @@ ggplot(common_stroke) +
   facet_wrap(~financial_year) +
   theme(axis.text.x = element_text(angle = 90))
 ```
+
 
 ```{r}
 common_stroke_age <- comb_stroke_activityca %>%
@@ -243,14 +146,12 @@ ggplot(common_stroke_age) +
 ```
 
 
-
 ```{r}
 test_1 <- common_stroke_age %>%
   filter(diagnosis == "Cerebrovascular Disease" & age_group == "All") 
   
 test2 <- separate(test_1, financial_year, into = c("year"), sep = "/")
 ```
-
 
 
 ```{r}
@@ -272,6 +173,13 @@ common_stroke_area_2 <- transform(common_stroke_area, year = as.numeric(year))
 ```
 
 ```{r}
+library(viridis)
+library(RColorBrewer)
+```
+
+
+```{r}
+
 ggplot(common_stroke_area_2) +
   aes(x = year, y = number_of_discharges, fill = diagnosis) +
   geom_area() +
@@ -279,16 +187,40 @@ ggplot(common_stroke_area_2) +
   theme(plot.title = element_text(hjust = 0.5)) +
   xlab("Year") +
   ylab("Number of Cases") +
-  labs(fill= "Type of Stroke") 
+  labs(fill= "Type of Stroke") +
+  scale_fill_viridis(discrete = "T", option = "viridis")
+        
   
 ```
+```{r}
+common_stroke_gender <- comb_stroke_activityca %>%
+  filter( ca == "S92000003") %>%
+  filter(age_group %in% c("All")) %>%
+  filter(admission_type %in% c("All")) %>%
+  group_by(sex)
+```
+
+```{r}
+common_stroke_gender <- separate(common_stroke_gender, financial_year, into = c("year"), sep = "/")
+  
+  
+common_stroke_gender_2 <- transform(common_stroke_gender, year = as.numeric(year))
+
+```
+
+
+```{r}
+ggplot(common_stroke_gender_2) +
+  aes(x = year, y = number_of_discharges, colour=diagnosis) +
+  geom_line() +
+  facet_wrap(~sex) 
+```
+
 
 ```{r}
 library(sf)
 library(leaflet)
 ```
-
-
 
 ```{r}
 
@@ -298,9 +230,11 @@ map <- st_read(here("~/final_project_melanie_jayasinghe/clean_data/shape_data/pu
 
 ```
 
+
 ```{r}
 plot(map)
 ```
+
 ```{r}
 hbr_map <- st_read(here("~/final_project_melanie_jayasinghe/clean_data/shape_data_2/SG_NHS_HealthBoards_2019.shp")) %>%
   st_simplify(dTolerance = 1000) %>%
@@ -377,16 +311,6 @@ ggplot(stroke_mortalityrate_scot_hbr) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-```{r}
-ggplot(stroke_mortalityrate_scot_hbr) +
-  aes(x = diagnosis, y = crude_rate) +
-  geom_col( fill = "blue") +
-  ggtitle("Rate of Deaths By Type of Stroke Across All of Scotland for the years 2009 to 2018 by Health Board Region") +
-  xlab("Diagnosis") +
-  ylab("Rate of Deaths") +
-  theme(plot.title = element_text(hjust = 0.5))
-```
-
 ### Variation with demographics
 
 ```{r}
@@ -410,6 +334,7 @@ ggplot(mortalityrate_gender_scot_ca) +
   ylab("Number of Deaths")
 ```
 
+
 ```{r}
 mortalityrate_gender_scot_hbr <- comb_stroke_mortalityhbr %>%
   filter(hbr == "S92000003") %>%
@@ -430,6 +355,7 @@ ggplot(mortalityrate_gender_scot_hbr) +
   xlab("Stroke Type") +
   ylab("Number of Deaths")
 ```
+
 
 ```{r}
 mortalityrate_gender_scot_hbr_rate <- comb_stroke_mortalityhbr %>%
@@ -474,6 +400,7 @@ ggplot(mortalityrate_age_scot_ca) +
 ```
 
 
+
 ```{r}
 ggplot(mortalityrate_age_scot_ca) +
   aes(x = diagnosis, y = number_of_deaths) +
@@ -485,4 +412,5 @@ ggplot(mortalityrate_age_scot_ca) +
   xlab("Stroke Type") +
   ylab("Number of Deaths")
 ```
+
 

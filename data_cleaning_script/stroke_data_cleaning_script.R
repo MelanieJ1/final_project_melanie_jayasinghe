@@ -87,7 +87,7 @@ stroke_mortalitybyhbr_2 <- stroke_mortalitybyhbr %>%
 la_data_zones <- read_csv("raw_data/data_zones.csv")
 
 
-data_zones <- read_csv("~/public_health_dashboard/raw_data/data_zones.csv")
+data_zones <- read_csv("raw_data/data_zones.csv")
 
 la_zones_clean <- data_zones %>%
   select(LA_Code, LA_Name) %>%
@@ -96,10 +96,10 @@ la_zones_clean <- data_zones %>%
 
 ## Reading in health board region data.
 
-hbr_zones_clean <- data_zones %>%
-  select(HB_Code, HB_Name) %>%
-  distinct()
+hbr_zones_all <- read_csv("raw_data/hbr_zones_all.csv")
 
+hbr_zones_clean_2 <- hbr_zones_all %>%
+  select(HB, HBName)
 
 
 ## Combining datasets with local authority and health board area names.
@@ -108,13 +108,13 @@ hbr_zones_clean <- data_zones %>%
 comb_stroke_activityca <- left_join(stroke_ca_2, la_zones_clean, by = c("ca" ="LA_Code"))
 
 
-comb_stroke_activityhbr <- left_join(stroke_hbr_2, hbr_zones_clean, by = c("hbr" ="HB_Code"))
+comb_stroke_activityhbr <- left_join(stroke_hbr_2, hbr_zones_clean_2, by = c("hbr" ="HBName"))
 
 
 comb_stroke_mortalityca <- left_join(stroke_mortalitybyca_2, la_zones_clean, by = c("ca" ="LA_Code"))
 
 
-comb_stroke_mortalityhbr <- left_join(stroke_mortalitybyhbr_2, hbr_zones_clean, by = c("hbr" ="HB_Code"))
+comb_stroke_mortalityhbr <- left_join(stroke_mortalitybyhbr_2, hbr_zones_clean, by = c("hbr" ="HBName"))
 
 
 ## Writing datasets to csv files
