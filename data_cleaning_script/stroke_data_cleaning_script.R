@@ -108,13 +108,13 @@ hbr_zones_clean_2 <- hbr_zones_all %>%
 comb_stroke_activityca <- left_join(stroke_ca_2, la_zones_clean, by = c("ca" ="LA_Code"))
 
 
-comb_stroke_activityhbr <- left_join(stroke_hbr_2, hbr_zones_clean_2, by = c("hbr" ="HBName"))
+comb_stroke_activityhbr <- left_join(stroke_hbr_2, hbr_zones_clean_2, by = c("hbr" ="HB"))
 
 
 comb_stroke_mortalityca <- left_join(stroke_mortalitybyca_2, la_zones_clean, by = c("ca" ="LA_Code"))
 
 
-comb_stroke_mortalityhbr <- left_join(stroke_mortalitybyhbr_2, hbr_zones_clean_2, by = c("hbr" ="HBName"))
+comb_stroke_mortalityhbr <- left_join(stroke_mortalitybyhbr_2, hbr_zones_clean_2, by = c("hbr" ="HB"))
 
 
 ## Writing datasets to csv files
