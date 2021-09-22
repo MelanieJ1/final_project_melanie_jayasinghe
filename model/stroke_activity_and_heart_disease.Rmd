@@ -1,0 +1,103 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(GGally)
+library(modelr)
+```
+
+```{r}
+heart_disease <- read_csv("C:/Users/mj_20/Documents/final_project_melanie_jayasinghe/raw_data/heart_disease.csv") %>%
+  clean_names()
+```
+
+```{r}
+heart_disease_2 <- heart_disease %>%
+  select(financial_year, hbr, admission_type, age_group, sex, diagnosis, number_of_discharges, crude_rate)
+```
+
+
+```{r}
+heart_disease_3 <- heart_disease_2 %>%
+  filter(admission_type == "All", age_group == "All", sex == "All")
+```
+
+```{r}
+hbr_zones_all <- read_csv("C:/Users/mj_20/Documents/final_project_melanie_jayasinghe/raw_data/hbr_zones_all.csv")
+
+hbr_zones_clean_2 <- hbr_zones_all %>%
+  select(HB, HBName)
+```
+
+```{r}
+comb_heart_disease <- left_join(heart_disease_3, hbr_zones_clean_2, by = c("hbr" ="HB"))
+
+```
+
+```{r}
+comb_heart_disease <- comb_heart_disease %>%
+  drop_na(HBName)
+```
+
+
+```{r}
+comb_heart_disease_2 <- comb_heart_disease %>%
+  filter(financial_year == "2018/19") %>%
+  group_by(hbr) %>%
+  mutate(number_of_cases = sum(number_of_discharges))
+```
+
+```{r}
+comb_stroke_activityhbr <- read_csv("C:/Users/mj_20/Documents/final_project_melanie_jayasinghe/clean_data/comb_stroke_activityhbr.csv")
+```
+```{r}
+comb_heart_disease_3 <- comb_heart_disease_2 %>%
+  pivot_wider(names_from = diagnosis, values_from = number_of_discharges) %>%
+  clean_names()
+```
+
+```{r}
+comb_heart_disease_4 <- comb_heart_disease_3 %>%
+  select(hbr,angina, coronary_heart_disease, heart_attack, heart_failure)
+```
+
+
+```{r}
+comb_stroke_activityhbr_2 <- comb_stroke_activityhbr %>%
+  filter(financial_year == "2018/19")
+```
+
+```{r}
+comb_stroke_activityhbr_2 <- comb_stroke_activityhbr_2 %>%
+  filter(age_group == "All", sex== "All", admission_type == "All")
+```
+
+```{r}
+comb_stroke_activityhbr_2 <- comb_stroke_activityhbr_2 %>%
+  drop_na(HBName)
+```
+
+```{r}
+comb_heart_disease_sel <- comb_heart_disease_2 %>%
+  select(hbr, diagnosis, number_of_discharges, HBName)
+```
+
+```{r}
+comb_stroke_activityhbr_2 <- comb_stroke_activityhbr_2 %>%
+  select(hbr, diagnosis, number_of_discharges)
+```
+
+
+```{r}
+comb_data <- left_join(comb_heart_disease_sel, comb_stroke_activityhbr_2, by = c("hbr" ="hbr"))
+```
+
+```{r}
+comb_data %>%
+  ggpairs(aes(colour = diagnosis.x, alpha = 0.5))
+```
+
