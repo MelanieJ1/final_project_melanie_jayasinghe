@@ -1,0 +1,569 @@
+---
+title: "Stroke Data Analysis"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(here)
+library(sf)
+library(leaflet)
+library(stringr)
+```
+
+## Loading in data
+
+```{r}
+comb_stroke_activityca <- read_csv("C:/Users/mj_20/Documents/final_project_melanie_jayasinghe/clean_data/comb_stroke_activity_ca.csv")
+```
+
+```{r}
+comb_stroke_activityhbr <- read_csv("C:/Users/mj_20/Documents/final_project_melanie_jayasinghe/clean_data/comb_stroke_activityhbr.csv")
+```
+
+```{r}
+comb_stroke_mortalityca <- read_csv("C:/Users/mj_20/Documents/final_project_melanie_jayasinghe/clean_data/comb_stroke_mortalityca.csv")
+```
+
+```{r}
+comb_stroke_mortalityhbr <- read_csv("C:/Users/mj_20/Documents/final_project_melanie_jayasinghe/clean_data/comb_stroke_mortalityhbr.csv")
+```
+
+## Question 1
+
+```{r}
+common_stroke <- comb_stroke_activityca %>%
+  filter( ca == "S92000003") %>%
+  filter(age_group %in% c("All")) %>%
+  filter(admission_type %in% c("All")) %>%
+  filter(sex %in% c("All"))
+           
+  
+```
+
+
+```{r}
+ggplot(common_stroke) +
+  aes(x = diagnosis, y = number_of_discharges) +
+  geom_col() 
+```
+
+
+```{r}
+common_stroke_2 <- common_stroke %>%
+  group_by(diagnosis) %>%
+  mutate(number_of_cases = sum(number_of_discharges)) %>%
+  filter(financial_year == "2009/10")
+```
+
+
+```{r}
+ggplot(common_stroke_2) +
+  aes(x = diagnosis, y = number_of_cases) +
+  geom_col(fill = "dark blue") +
+  ggtitle("Incidences of Stroke by Type Across Scotland for Years 2009 to 2019") +
+  xlab("Type of Stroke") +
+  ylab("Number of Cases") +
+  theme(axis.text.x = element_text(angle = 330))+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+## Question 2.  Differences between demographics
+```{r}
+common_stroke_dem <- comb_stroke_activityca %>%
+  filter( ca == "S92000003") %>%
+  filter(age_group %in% c("All")) %>%
+  filter(admission_type %in% c("All")) %>%
+  filter(sex %in% c("Male", "Female"))  %>%
+  group_by(diagnosis, sex) %>%
+  mutate(number_of_cases = sum(number_of_discharges)) %>%
+  filter(financial_year == "2009/10")
+          
+```
+
+
+```{r}
+ggplot(common_stroke_dem) +
+  aes(x = diagnosis, y = number_of_cases, fill = sex) +
+  geom_col() +
+  labs(fill= "Gender") +
+  ggtitle("Incidences of Stroke by Type and Gender for Scotland") +
+  theme(axis.text.x = element_text(angle = 330))+
+  theme(plot.title = element_text(hjust = 0.5))+
+  xlab("Type of Stroke") +
+  ylab("Number of Cases")
+```
+
+```{r}
+common_stroke_year <- comb_stroke_activityca %>%
+  filter( ca == "S92000003") %>%
+  filter(age_group %in% c("All")) %>%
+  filter(admission_type %in% c("All")) %>%
+  filter(sex %in% c("Male", "Female"))  %>%
+  group_by(diagnosis, sex)
+```
+
+
+```{r}
+ggplot(common_stroke_year) +
+  aes(x=diagnosis, y=number_of_discharges, fill=sex)+
+  geom_col() +
+  facet_wrap(~financial_year) +
+  ggtitle("Incidences of Stroke by Type and Gender per Year") +
+  theme(plot.title = element_text(hjust = 0.5))+
+  theme(axis.text.x = element_text(angle = 90)) +
+  ylab("Number of Cases") +
+  xlab("Type of Stroke")
+  labs(fill= "Gender")
+  
+```
+
+
+
+number of cases per year
+```{r}
+ggplot(common_stroke) +
+  aes(x = diagnosis, y = number_of_discharges) +
+  geom_col(fill = "dark blue") +
+  facet_wrap(~age) +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+
+```{r}
+common_stroke_age <- comb_stroke_activityca %>%
+  filter( ca == "S92000003") %>%
+  filter(admission_type %in% c("All")) %>%
+  filter(sex %in% c("All")) %>%
+  group_by(diagnosis, age_group)
+```
+
+```{r}
+ggplot(common_stroke_age) +
+  aes(x = diagnosis, y = crude_rate) +
+  geom_col(fill = "dark blue") +
+  facet_wrap(~age_group) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  ggtitle("Incidences of Each Type of Stroke by Age Group for years 2009 to 2019") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Type of Stroke") +
+  ylab("Number of Cases")
+```
+
+
+```{r}
+test_1 <- common_stroke_age %>%
+  filter(diagnosis == "Cerebrovascular Disease" & age_group == "All") 
+  
+test2 <- separate(test_1, financial_year, into = c("year"), sep = "/")
+```
+
+
+```{r}
+
+
+test2 <- transform(test2, year = as.numeric(year))
+
+```
+
+
+
+```{r}
+common_stroke_area <- separate(common_stroke, financial_year, into = c("year"), sep = "/")
+  
+  
+common_stroke_area_2 <- transform(common_stroke_area, year = as.numeric(year))
+
+  
+```
+
+```{r}
+library(viridis)
+library(RColorBrewer)
+```
+
+
+```{r}
+
+ggplot(common_stroke_area_2) +
+  aes(x = year, y = number_of_discharges, fill = diagnosis) +
+  geom_area() +
+  ggtitle("Number of Cases of Each Type of Stroke per Year from 2009 to 2018") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Year") +
+  ylab("Number of Cases") +
+  labs(fill= "Type of Stroke") +
+  scale_fill_viridis(discrete = "T", option = "viridis") +
+  theme(plot.title = element_text(hjust = 0.5))
+        
+  
+```
+```{r}
+common_stroke_gender <- comb_stroke_activityca %>%
+  filter( ca == "S92000003") %>%
+  filter(age_group %in% c("All")) %>%
+  filter(admission_type %in% c("All")) %>%
+  group_by(sex)
+```
+
+```{r}
+common_stroke_gender <- separate(common_stroke_gender, financial_year, into = c("year"), sep = "/")
+  
+  
+common_stroke_gender_2 <- transform(common_stroke_gender, year = as.numeric(year))
+
+```
+
+
+```{r}
+ggplot(common_stroke_gender_2) +
+  aes(x = year, y = number_of_discharges, colour=diagnosis) +
+  geom_line() +
+  facet_wrap(~sex) 
+```
+
+## Question 3
+```{r}
+library(sf)
+library(leaflet)
+```
+
+```{r}
+
+map <- st_read(here("~/final_project_melanie_jayasinghe/clean_data/shape_data/pub_las.shp")) %>%
+  st_simplify(dTolerance = 1000) %>%
+  st_transform("+proj=longlat + datum=WGS84")
+
+```
+
+
+```{r}
+plot(map)
+```
+
+```{r}
+hbr_map <- st_read(here("~/final_project_melanie_jayasinghe/clean_data/shape_data_2/SG_NHS_HealthBoards_2019.shp")) %>%
+  st_simplify(dTolerance = 1000) %>%
+  st_transform("+proj=longlat + datum=WGS84")
+
+```
+
+```{r}
+plot(hbr_map)
+```
+
+
+```{r}
+hbr_map_data <- comb_stroke_activityhbr %>%
+  filter(admission_type == "All", age_group == "All", sex == "All")
+
+hbr_map_data$hbr[hbr_map_data$hbr == "S08000021"] <- "S08000031"
+  
+hbr_map_data$hbr[hbr_map_data$hbr == "S08000023"] <- "S08000032"
+
+hbr_map_data$hbr[hbr_map_data$hbr == "S08000018"] <- "S08000029"
+
+hbr_map_data <- hbr_map_data %>%
+  drop_na(HBName)
+
+
+hbr_map_data <- hbr_map_data %>%
+  mutate(HBName = str_remove_all(HBName, "NHS"))
+
+hbrstroke_map_data <- hbr_map_data %>%
+  filter(diagnosis == "Stroke") %>%
+  filter(financial_year == "2018/19") %>%
+  group_by(HBName)
+
+  
+```
+
+
+```{r}
+# Filter data for leaflet plot
+stroke_type_map_stroke <- hbrstroke_map_data %>%
+  # Join with shape data
+  full_join(hbr_map, by = c("hbr" = "HBCode")) %>%
+  # Convert to shape data from data frame
+  st_as_sf()
+
+```
+
+
+
+
+
+```{r}
+plot(stroke_type_map_stroke[8])
+```
+
+
+
+
+```{r}
+hbrstroke_map_data <- hbr_map_data %>%
+  filter(diagnosis == "Stroke") %>%
+  filter(financial_year == "2018/19") %>%
+  group_by(HBName)
+```
+
+```{r}
+
+hbrstroke_labels <- sprintf(
+    "<strong>%s</strong><br/>%g cases",
+    stroke_type_map_stroke$HBName.x, stroke_type_map_stroke$number_of_discharges
+  ) %>% 
+  lapply(htmltools::HTML)
+
+bins <- c(20, 220, 420, 620, 820, 920, 1120, 1320, 1520, 1720, 1820, 2020, 2220, 2420, 2620, 2820, 3020, 3220, 3420, 3620, 3820, 6000, 6400)
+pal <- colorBin("Purples", domain = stroke_type_map_stroke$number_of_discharges, bins = bins)
+```
+
+
+```{r}
+leaflet(stroke_type_map_stroke, height = 600, width = 500) %>%
+    setView(lng = -4.2026, lat = 57.8, zoom = 6, options = list()) %>%
+   
+  addPolygons(fillColor = ~pal(number_of_discharges),
+              weight = 0.75,
+              opacity = 1,
+              color = "black",
+              fillOpacity = 0.9,
+              highlightOptions = NULL,
+              label = hbrstroke_labels,
+labelOptions = labelOptions(
+  interactive = FALSE,
+  noHide = TRUE,
+  textOnly = TRUE,
+  offset = c(0, 0),
+    style = NULL,
+    textsize = "7px",
+    direction = "right")) %>%
+    addLegend(pal = pal, values = ~density, opacity = 0.7, title = NULL,
+    position = "bottomright")
+
+
+
+              
+```
+
+## Geospatial Map for local authority area
+
+
+```{r}
+comb_stroke_activityca %>%
+  distinct(LA_Name)
+```
+
+
+```{r}
+
+ca_map_data <- comb_stroke_activityca %>%
+  filter(admission_type == "All", age_group == "All", sex == "All")
+
+ca_map_data[ca_map_data =="Na h-Eileanan Siar"]<- "Eilean Siar"
+  
+ca_map_data <- ca_map_data %>%
+  drop_na(LA_Name)
+
+
+
+ca_stroke_map_data <- ca_map_data %>%
+  filter(diagnosis == "Stroke") %>%
+  filter(financial_year == "2018/19") %>%
+  group_by(LA_Name)
+
+  
+```
+
+
+```{r}
+
+# Filter data for leaflet plot
+stroke_type_map_ca <- ca_stroke_map_data %>%
+  # Join with shape data
+  full_join(map, by = c("ca" = "code")) %>%
+  # Convert to shape data from data frame
+  st_as_sf()
+```
+
+
+```{r}
+ca_stroke_labels <- sprintf(
+    "<strong>%s</strong><br/>%g cases",
+    stroke_type_map_ca$LA_Name, stroke_type_map_ca$number_of_discharges
+  ) %>% 
+  lapply(htmltools::HTML)
+
+bins <- c(20, 220, 420, 620, 820, 920, 1120, 1320, 1520, 1720, 1820, 2020)
+pal <- colorBin("Purples", domain = stroke_type_map_ca$number_of_discharges, bins = bins)
+```
+
+```{r}
+leaflet(stroke_type_map_ca, height = 600, width = 500) %>%
+  setView(lng = -4.2026, lat = 57.8, zoom = 6, options = list()) %>%
+  
+  addPolygons(fillColor = ~pal(number_of_discharges),
+              weight = 0.75,
+              opacity = 1,
+              color = "black",
+              fillOpacity = 0.9,
+              highlightOptions = NULL,
+              label = ca_stroke_labels,
+labelOptions = labelOptions(
+  interactive = NULL,
+    style = NULL,
+    textsize = "7px",
+    noHide = FALSE,
+  textOnly = TRUE,
+    direction = "auto")) %>%
+    addLegend(pal = pal, values = ~density, opacity = 0.7, title = NULL,
+    position = "bottomright")
+              
+```
+
+
+## Question 4. Are there differences in mortality rates for different types of stroke? Does this vary with demographics?
+
+```{r}
+
+stroke_mortalityrate_scot <- comb_stroke_mortalityca %>%
+  filter( ca == "S92000003") %>%
+  filter(age_group %in% c("All")) %>%
+  filter(sex %in% c("All"))
+           
+```
+
+```{r}
+ggplot(stroke_mortalityrate_scot) +
+  aes(x = diagnosis, y = crude_rate) +
+  geom_col( fill = "dark blue") +
+  ggtitle("Rate of Deaths By Type of Stroke Across Scotland for years 2009 to 2018") +
+  xlab("Type of Stroke") +
+  ylab("Rate of Deaths") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+stroke_mortalityrate_scot_hbr <- comb_stroke_mortalityhbr %>%
+  filter(hbr == "S92000003") %>%
+  filter(age_group %in% c("All")) %>%
+  filter(sex %in% c("All"))
+           
+```
+
+
+```{r}
+ggplot(stroke_mortalityrate_scot_hbr) +
+  aes(x = diagnosis, y = number_of_deaths) +
+  geom_col( fill = "dark blue") +
+  ggtitle("Number of Deaths By Type of Stroke Across All of Scotland for the years 2009 to 2018 by Health Board Region") +
+  xlab("Type of Stroke") +
+  ylab("Number of Deaths") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+### Variation with demographics
+
+```{r}
+mortalityrate_gender_scot_ca <- comb_stroke_mortalityca %>%
+  filter(ca == "S92000003") %>%
+  filter(age_group %in% c("All")) %>%
+  filter(sex %in% c("Male", "Female"))  %>%
+  group_by(diagnosis, sex) %>%
+  mutate(total_deaths = sum(number_of_deaths)) %>%
+  filter(year == "2018")
+```
+
+```{r}
+ggplot(mortalityrate_gender_scot_ca) +
+  aes(x = diagnosis, y = number_of_deaths, fill = sex) +
+  geom_col() +
+  labs(fill= "Gender") +
+  ggtitle("Number of Deaths by Stroke Type and Gender for Local Authority Area") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Stroke Type") +
+  ylab("Number of Deaths")
+```
+
+
+```{r}
+mortalityrate_gender_scot_hbr <- comb_stroke_mortalityhbr %>%
+  filter(hbr == "S92000003") %>%
+  filter(age_group %in% c("All")) %>%
+  filter(sex %in% c("Male", "Female"))  %>%
+  group_by(diagnosis, sex) %>%
+  mutate(total_deaths = sum(number_of_deaths)) %>%
+  filter(year == "2018")
+```
+
+```{r}
+ggplot(mortalityrate_gender_scot_hbr) +
+  aes(x = diagnosis, y = total_deaths, fill = sex) +
+  geom_col() +
+  labs(fill= "Gender") +
+  ggtitle("Number of Deaths by Stroke Type and Gender for Health Board Region") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Stroke Type") +
+  ylab("Number of Deaths")
+```
+
+
+```{r}
+mortalityrate_gender_scot_hbr_rate <- comb_stroke_mortalityhbr %>%
+  filter(hbr == "S92000003") %>%
+  filter(age_group %in% c("All")) %>%
+  filter(sex %in% c("Male", "Female"))  %>%
+  group_by(diagnosis, sex) %>%
+  mutate(rate_of_deaths = sum(crude_rate)) %>%
+  filter(year == "2018")
+```
+
+```{r}
+ggplot(mortalityrate_gender_scot_hbr_rate) +
+  aes(x = diagnosis, y = rate_of_deaths, fill = sex) +
+  geom_col() +
+  labs(fill= "Gender") +
+  ggtitle("Rate of Deaths by Stroke Type and Gender for Scotland") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Type of Stroke") +
+  ylab("Rate of Deaths")
+```
+
+### Variation by age group
+
+```{r}
+mortalityrate_age_scot_ca <- comb_stroke_mortalityca %>%
+  filter(ca == "S92000003") %>%
+  filter(sex %in% c("All")) %>%
+  group_by(diagnosis, age_group)
+```
+
+```{r}
+ggplot(mortalityrate_age_scot_ca) +
+  aes(x = diagnosis, y = crude_rate) +
+  geom_col(fill = "blue") +
+  facet_wrap(~age_group) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  ggtitle("Rate of Deaths by Stroke Type and Age Group for Scotland") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Type of Stroke") +
+  ylab("Rate of Deaths")
+```
+
+
+
+```{r}
+ggplot(mortalityrate_age_scot_ca) +
+  aes(x = diagnosis, y = number_of_deaths) +
+  geom_col(fill = "blue") +
+  facet_wrap(~age_group) +
+  theme(axis.text.x = element_text(angle = 90)) +
+  ggtitle("Number of Deaths by Stroke Type and Age Group for Whole of Scotland") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlab("Stroke Type") +
+  ylab("Number of Deaths")
+```
+
+

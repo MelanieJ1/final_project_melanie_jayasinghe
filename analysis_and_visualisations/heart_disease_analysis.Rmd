@@ -1,0 +1,130 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(here)
+library(sf)
+library(leaflet)
+library(stringr)
+```
+
+```{r}
+heart_disease <- read_csv("C:/Users/mj_20/Documents/final_project_melanie_jayasinghe/raw_data/heart_disease.csv") %>%
+  clean_names()
+```
+
+```{r}
+heart_disease_2 <- heart_disease %>%
+  select(financial_year, hbr, admission_type, age_group, sex, diagnosis, number_of_discharges, crude_rate)
+```
+
+```{r}
+map_hbr <- st_read(here("~/final_project_melanie_jayasinghe/clean_data/shape_data_2/SG_NHS_HealthBoards_2019.shp")) %>%
+  st_simplify(dTolerance = 1000) %>%
+  st_transform("+proj=longlat + datum=WGS84")
+```
+
+```{r}
+comb_stroke_activityhbr_new <- read_csv("C:/Users/mj_20/Documents/final_project_melanie_jayasinghe/clean_data/comb_stroke_mortalityhbr.csv")
+```
+
+
+```{r}
+map_data <- heart_disease_2 %>%
+  filter(admission_type == "All", age_group == "All", sex == "All")
+
+```
+
+```{r}
+hbr_zones_all <- read_csv("C:/Users/mj_20/Documents/final_project_melanie_jayasinghe/raw_data/hbr_zones_all.csv")
+
+hbr_zones_clean_2 <- hbr_zones_all %>%
+  select(HB, HBName)
+```
+
+```{r}
+
+comb_heart_disease <- left_join(map_data, hbr_zones_clean_2, by = c("hbr" ="HB"))
+
+```
+
+
+```{r}
+comb_heart_disease$hbr[comb_heart_disease$hbr == "S08000021"] <- "S08000031"
+  
+comb_heart_disease$hbr[comb_heart_disease$hbr == "S08000023"] <- "S08000032"
+
+comb_heart_disease$hbr[comb_heart_disease$hbr == "S08000018"] <- "S08000029"
+```
+
+```{r}
+comb_heart_disease <- comb_heart_disease %>%
+  drop_na(HBName)
+```
+
+```{r}
+comb_heart_disease <- comb_heart_disease %>%
+  mutate(HBName = str_remove_all(HBName, "NHS"))
+```
+
+```{r}
+heart_disease_map <- comb_heart_disease %>%
+  filter(financial_year == "2018/19") %>%
+  group_by(hbr) %>%
+  mutate(number_of_cases = sum(number_of_discharges))
+  
+```
+
+```{r}
+heart_disease_map_2 <- heart_disease_map %>%
+  filter(diagnosis == "Coronary Heart Disease")
+```
+
+```{r}
+# Filter data for leaflet plot
+heart_disease_map_3 <- heart_disease_map_2 %>%
+  # Join with shape data
+  full_join(map_hbr, by = c("hbr" = "HBCode")) %>%
+  # Convert to shape data from data frame
+  st_as_sf()
+
+```
+
+```{r}
+hbrstroke_labels <- sprintf(
+    "<strong>%s</strong><br/>%g cases",
+    heart_disease_map_2$HBName, heart_disease_map_2$number_of_discharges
+  ) %>% 
+  lapply(htmltools::HTML)
+
+bins <- c(0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000, 13000, 14000)
+pal <- colorBin("Greens", domain = heart_disease_map_2$number_of_discharges, bins = bins)
+```
+
+```{r}
+leaflet(heart_disease_map_3, height = 600, width = 500) %>%
+    setView(lng = -4.2026, lat = 57.8, zoom = 6, options = list()) %>%
+   
+  addPolygons(fillColor = ~pal(number_of_discharges),
+              weight = 0.75,
+              opacity = 1,
+              color = "black",
+              fillOpacity = 0.9,
+              highlightOptions = NULL,
+              label = hbrstroke_labels,
+labelOptions = labelOptions(
+  interactive = FALSE,
+  noHide = TRUE,
+  textOnly = TRUE,
+  offset = c(0, 0),
+    style = NULL,
+    textsize = "7px",
+    direction = "right")) %>%
+    addLegend(pal = pal, values = ~density, opacity = 0.7, title = NULL,
+    position = "bottomright")
+```
+
