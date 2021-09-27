@@ -1,0 +1,119 @@
+---
+title: "Analysis Of Public Health Scotland Stroke Data"
+output: html_notebook
+---
+
+# Context
+
+This report is looking into the number of cases (by number of hospital discharges) and number of deaths (by mortality rate and actual number of deaths) for stroke data for Scotland.  The datasets come from the open NHS data site.  Types of stroke looked at are Cerebrovascular Disease in general which includes all types of stroke, Stroke (ischemic), Subarachnoid Hemorrhages and Transient Ischemic Attack (TIAs and related syndromes).  
+
+
+## Business intelligence and data-driven decision making
+## PDA 1.1. Business intelligence and data-driven decision making
+
+This report looks at the types of stroke with the highest number of cases and highest mortality rates and how demographics of age and gender are presented in these types.  This will allow Public Health Scotland to focus resources by gender group and age group that are most at risk from strokes.</br> 
+
+The number of cases and mortality rates are also broken down by health board region and local authority area.  This is used to highlight particular areas with the highest number of cases.</br>  
+
+A risk factor of stroke is heart disease.  Heart disease is looked at by health board region and compared to the same data for strokes to see if there are corresponding patterns in regions with high areas of heart disease and stroke.</br> 
+
+All of these insights will allow Public Health Scotland to focus resources by gender group and age group on those patients that are most at risk from suffering from strokes and dying from them.  Looking at the risk factors of heart disease can also give an indication as to which regions need to be prioritised for resources such as treatments and prevention plans.  All these factors can be used to improve Public Health Scotland's Stroke Improvement Plan.   
+
+
+
+## Domain knowledge and the business context
+## PDA 1.2. Domain knowledge and the business context
+## PDA 4.7 Role of domain knowledge in interpreting analyses
+
+Public Health Scotland provides a national public health service for Scotland.  It consists of 14 health boards which are NHS Ayrshire & Arran, NHS Borders, NHS Dumfries & Galloway, NHS Fife, NHS Forth Valley, NHS Grampian, NHS Greater Glasgow & Clyde, NHS Highland, NHS Lanarkshire, NHS Lothian, NHS Orkney, NHS Shetland, NHS Tayside, and NHS Western Isles/ Eileanan Siar. It is a publicly funded health care system which provides diagnosis and treatment for every medical condition.</br> 
+
+Treatment and prevention of strokes in a national clinical priority for Public Health Scotland.  The analysis carried out in this report will aim to direct attention to health board/local authority regions and demographics that are most at risk from strokes and require a greater amount of resources to tackle the problem.  The analysis in this report can be used to improve the Stroke Improvement Plan as there are a limited number of resources available so these have to be distributed where they are most needed and can be most effective.  
+
+
+# Data
+
+## Internal and external data sources
+## PDA 1.4. Internal and external data sources
+
+The business brief from Public Health Scotland provided four datasets on stroke data for stroke activity by local authority area and health board and mortality rates for stroke by local authority area and health board region.  The stroke activity datasets provided the number of hospital discharges for each type of stroke categorised by gender, age group, and area.  The mortality rate datasets provided the number of deaths and mortality rate by area categorised by gender and age group. The stroke activity datasets have 17820 observations (rows) and the mortality datasets have 8100 observations.  Each dataset has a code which corresponds to local authority area or health board region.  The data is divided by year from the years 2009 to 2019.</br>  
+
+The dataset on number of hospital discharges for heart disease was taken from https://www.opendata.nhs.scot/km/dataset/scottish-heart-disease-statistics.  It contains the number of hospital discharges by each type of heart disease for gender, age group and health board region.  It consists of 43200 observations and 16 variables. 
+
+## Types of data
+## PDA 2.2. Types of data (categorical and numerical data and their sub-types) 
+
+All five datasets contain categorical, numeric and character data.  The gender columns are character data split into categories of male and female.  The age group columns are character data divided into age group categories. The number of discharges, number of deaths and rates are numeric.  The health board region or local authority area codes are character data.
+
+
+## Data formats
+## PDA 2.3. Data formats 
+
+All of the raw data came from downloaded CSV files.
+
+
+## Data quality and bias
+## PDA 1.5. Data quality
+## PDA 2.6. Data quality including data bias 
+
+The quality of the data is good as the datasets are fairly clean and only contain a low amount of missing NA values.</br>
+
+The data is unlikely to be biased as it covers every health board and local authority area in Scotland and contains all the number of deaths/ hospital discharges for each year.  Therefore the data is likely to accurately reflect the number of cases and deaths from stroke and the demographics involved in each region over the previous ten years.</br>
+
+
+# Ethics
+## PDA 1.9. Ethical implications of business requirements
+## PDA 2.7. Ethical issues in data sourcing and extraction
+
+### Ethical issues in data sourcing and extraction
+
+The stroke and heart disease datasets are from NHS open data and are open source and available to everyone.  The data has been anonymised so there are no ethical issues involved in data sourcing and extraction as the details of individual patients cannot be identified.</br>
+
+### Ethical implications of business requirements
+
+The business requirements are focusing on the types of stroke which cause the highest number of cases and deaths and the areas of Scotland in which these occur.  Recommendations will focus on these areas and demographics.  Ethical implications of this are that less treatments and prevention programmes may be available for particular health board/local authority regions as they are not considered high priority areas.  This could mean that particular patients in non-priority areas could miss out on vital treatments.</br>
+
+
+# Analysis
+
+## Stages in the data analysis process
+## PDA 1.6. Stages in the data analysis process 
+
+<li>Data Cleaning</li>
+First the datasets were cleaned using the tidyverse package in R to make column names follow naming standards, to select only relevant columns, and to split the year column to reflect the first year in order to make it a numeric column suitable for analysis.  Datasets containing health board and local authority area codes and names were joined to the stroke datasets.</br>  
+
+<li>Analysis</li>
+The tidyverse package was used to group the data and perform calculations based on type of stroke, gender, age group and region.</br>
+
+<li>Visualisation of Data</li>
+The analysis of the data was then visualised in the form of bar plots, facet wraps, area plots and geospatial plots.  Visualisation of the data was carried out using the R packages GGplot2 and Leaflet.</br>
+
+
+## Tools for data analysis
+## PDA 1.10. Tools for data analysis
+
+<li>R - was used to carry out all of the data analysis and visualisations.</li>  
+
+<li>Tidyverse and Janitor packages - were used for data cleaning and analysis.</li>
+
+<li>GGplot2 package - was used to create bar and area plots as well as facet wraps of the data.</li>
+
+<li>SF package - was used to load the map shape files and to connect the datasets to the shape files.</li>
+
+<li>Leaflet package - was used to present the connected shape file data as a geospatial map.</li>
+
+
+## Descriptive, diagnostic, predictive and prescriptive analysis
+## PDA 1.7. Descriptive, diagnostic, predictive and prescriptive analysis 
+
+<li>Descriptive Analytics</li>
+The datasets used for this analysis report contained past data which were analysed to find trends in the stroke data by gender, age group and area for the years 2009 to 2019.  
+
+<li>Diagnostic Analytics</li>
+The use of the data on heart disease appears to show correlation between areas of high number of cases of heart disease and areas with high number of cases of stroke.  Therefore the risk factors that cause heart disease can be used to explain why particular areas have high numbers of stroke cases.
+
+<li>Predictive Analytics</li>
+Areas with high amounts of heart disease cases correspond with areas with high amounts of stroke.  This suggests correlation between the two.  Therefore areas which are likely to experience higher cases of stroke can be predicted from areas with high levels of heart disease.   
+
+<li>Prescriptive Analytics</li>
+This report recommends actions to take based of the analysis of the data.  The link between regions with high rates of heart disease and stroke leads to recommendations to deal with heart disease and its risk factors as they are precursors to stroke.   
+
